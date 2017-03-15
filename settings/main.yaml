@@ -1,0 +1,15 @@
+main_server: http://10.10.2.49:3333
+imagemagick_dir: /opt/local/bin/
+web_url: http://duchs.local/depman/
+router: http://depman.local/d/
+os_dir: /web/depman/
+storage_url: /web/depman/db/depman/depman
+o_router: 
+o_url: http://duchs.local/depman
+salt: dnesJeKrasnyDen123
+mail_server: smtp.1and1.es
+mail_acc: espesweb@espes.eu
+mail_pss: espesWeb4321
+mail_smtp: smtp.1and1.es
+mail_smtp_out: 587
+send_mail: 0

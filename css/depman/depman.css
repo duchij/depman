@@ -1,0 +1,18 @@
+#departament {
+	background-color: #999999;
+}
+
+
+.room {
+	border:1px solid black;
+	width:300px;
+	background-color: #cccccc;
+}
+
+.bed {
+	background-color: yellow;
+}
+
+.labExam {
+	background-color: grey;
+}
