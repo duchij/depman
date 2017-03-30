@@ -130,7 +130,7 @@ class db{
         $replacement = "`$1`";
         $string = preg_replace($pattern, $replacement, $string);
 
-
+		
         foreach ($data as $key=>$value){
             $pattern1 = "/({".$key."\|s)}/";
 

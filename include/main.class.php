@@ -65,7 +65,10 @@ class main {
         {
             $this->runClassStr = $className;
         }
-
+        
+        $this->loadSessionData();
+        
+		
 
     }
     /**
@@ -78,6 +81,14 @@ class main {
     public function resultStatus($status,$result){
         return array("status"=>$status,"result"=>$result);
     }
+    
+    
+    protected function loadSessionData($data=array())
+    {
+    	$_SESSION["dep_id"] = 1;
+    	$_SESSION["clinic_id"] = 1;
+    }
+    
 
     public function resultData($resultStatus){
         return $resultStatus["result"];

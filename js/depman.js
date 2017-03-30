@@ -32,10 +32,19 @@ function checkVip(id)
  
 function loadDepSchema()
 {
+	/*var data = {
+			dep_id:Number($("#departament").val())
+	} */
+	
+	
 	var t = new js_comunication();
 	t.addRawRequest("index.php","depman/js_getSchema",depMan,[{},"setSchema"]);
 	t.sendData();
 
+}
+
+function setSchema(status,result){
+	
 }
 
 
@@ -102,7 +111,7 @@ function saveDepSettings()
 						 return false;
 					 }
 				});
-				obj["departament"] = dep;
+				obj["dep_id"] = dep;
 				
 				data.push(obj);
 			}
@@ -183,9 +192,8 @@ function saveDepStructureFnc()
 	var iLn = inputs.length;
 	
 	var actualDate = $("#actualDate").val();
-	var patients = [];
+	var saveData = [];
 	
-	var parents = [];
 	
 	for (var i=0; i<iLn; i++)
 	{
@@ -195,53 +203,119 @@ function saveDepStructureFnc()
 			
 			var pt = inputs[i].name.split("_");
 			
-			patObj["room"] = pt[1];
-			patObj["bed"] = pt[2];
+			patObj["room"] = Number(pt[1]);
+			patObj["bed"] = Number(pt[2])+1;
 			patObj["name"] = inputs[i].value;
 			patObj["date"] = actualDate;
 			patObj["status"] = "patient";
 			
-			patients.push(patObj);
+			saveData.push(patObj);
 		}
 		
+		if (inputs[i].name.indexOf("parent") !=-1 && inputs[i].value != ""){
+			
+			var parObj = {};
+			
+			var pt = inputs[i].name.split("_");
+			
+			parObj["room"] = Number(pt[1]);
+			parObj["bed"] = Number(pt[2])+1;
+			parObj["name"] = inputs[i].value;
+			parObj["date"] = actualDate;
+			parObj["status"] = "parent";
+			
+			saveData.push(parObj);
+			
+		}
+	}
+	
+	
+	var t= new js_comunication();
+	
+	t.addRawRequest("index.php","depman/js_saveCurrentDepStatus",depMan,[saveData,"afterDepStatusSaved"]);
+	t.sendData();
+}
+
+function afterDepStatusSaved(status,result)
+{
+	if (!status){
+		pushWindow({caption:"Error",content:result});
+	}
+}
+
+function loadDepStructure()
+{
+	var t=new js_comunication();
+	t.addRawRequest("index.php","depman/js_setPatients",depMan,[{},"setPatientsStructure"]);
+	t.sendData();
+}
+
+function setPatientsStructure(status,result)
+{
+	
+	console.log([status,result]);
+	
+	if (!status){
 		
+		pushWindow({caption:"Error",content:result});
+		return false;
 		
 	}
+	
+	var strLn = result.length;
+	
+	for (var i=0; i<strLn; i++){
 		
+		var posId = "";
 		
+		switch (result[i].status)
+		{
 		
+			case "patient":
+				posId="room_"+result[i].room+"_"+result[i].bed;
+				break;
+			case "parent":
+				posId="parent_"+result[i].room+"_"+result[i].bed;
+				break;
+		}
 		
+		$("#"+posId).val(result[i].name);
+		$("#hstart_"+posId).html(result[i].hospit_start);
 		
-	/*	if (input.type == "text"){
+		if (result[i].hospit_end !== null){
 			
+			$("#hend_"+posId).html(result[i].hospit_start);
+		
+		}else{
 			
+			var btnId = "hend_btn_"+posId;
 			
+			var button = "<input type='text' id='hend_btn_"+posId+"' onblur='setEndDateHospitalisation("+btnId+");' style='width:150px;' class='inline'>" +
+						 "<button onclick='endPatientHospit("+posId+");' class='red button'>Prepustit</button>";
 			
-			if (input.name.indexOf("room") != -1){
-				
-				var patObj = {};
-				
-				var pt = input.name.split("_");
-				
-				patObj["room"] = pt[1];
-				patObj["bed"] = pt[2];
-				patObj["name"] = input.value;
-				
-				
-				patients.push(patObj);
-			}
+			$("#hend_"+posId).html(button);
 			
 		}
 		
-		
-	});*/
-	
-	
-	console.log(patients);
-	
+	}
 	
 }
 
+function setEndDateHospitalisation(id)
+{
+	
+	$(id).datetimepicker(
+			{
+				//inline:true,
+				format:'Y-m-d H:i:00',
+				step:60
+				
+			});
+	$(id).datetimepicker("show");
+	
+
+
+}
 
 
 function removeRoomFnc(id)
@@ -255,8 +329,18 @@ function removeRowJs(id)
 }
 
 
+function changeDepBeds(){
+	//console.log("la");
+	
+	
+}
+
+
+
 function depman_init()
 {
+	
+
 	
 	
 	$("#addRoom").on("click",function(e){
@@ -278,6 +362,10 @@ function depman_init()
 		saveDepStructureFnc();
 		
 	});
+	
+	if ($("#setStructure").val() == "1"){
+		loadDepStructure();
+	}
 	
 }
 

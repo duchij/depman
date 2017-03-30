@@ -1,8 +1,13 @@
-
+{*$deps|@var_dump*}
 <div class="row">
 Oddelenie:
-	<select id="departament">
-		<option value="MSV">Oddelenie dievcat</option>
+
+	<select id="departament"  onchange="loadDepSchema();">
+		{foreach from=$deps key=k item=dep}
+			<option value="{$dep.dep_id}">{$dep.dep_label}</option>
+		{/foreach}
+	
+		
 	</select>
 	<table id="roomsBeds"> 
 		<thead>
