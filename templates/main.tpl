@@ -53,9 +53,9 @@
 			<nav class="nav vertical nocollappse warning box">
 				<h2 class="green">Miestnosti</h2>
 				<ul>
-					<li class="green"><a href="index.php?c=depman&m=beds" target="_self">Nastavenie oddelenia</a></li>
-					<li class="green"><a href="index.php?c=depman&m=setPatients" target="_self">Ulozenie pacientov</a></li>
-					
+					<li><a href="index.php?c=depman&m=beds" target="_self">Nastavenie oddelenia</a></li>
+					<li><a href="index.php?c=depman&m=setPatients" target="_self">Uloženie pacientov</a></li>
+					<li><a href="index.php?c=depman&m=serverSetMorningPlan" target="_self">Ranná vizita</a></li>
 				</ul>
 			</nav>
 			{*/if*}

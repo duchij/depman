@@ -1,4 +1,5 @@
 {*$deps|@var_dump*}
+<input type="hidden" id="setBeds" value="1">
 <div class="row">
 Oddelenie:
 

@@ -15,5 +15,7 @@
 <link rel="stylesheet" type="text/css" href="css/jquery-ui.min.css">
 <link rel="stylesheet" type="text/css" href="css/jquery-ui.structure.min.css">
 <link rel="stylesheet" type="text/css" href="css/jquery-ui.theme.min.css">
-<link rel="stylesheet" type="text/css" href="css/jquery.datetimepicker.min.css">
+<!--  <link rel="stylesheet" type="text/css" href="css/jquery.datetimepicker.min.css">-->
+<link rel="stylesheet" type="text/css" href="css/flatpickr.css">
+<link href="js/flatr/plugins/confirmDate/confirmDate.css" type="text/css" rel="stylesheet"></script>
 <link rel="stylesheet" type="text/css" href="css/main.css">

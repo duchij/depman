@@ -14,6 +14,12 @@ function addRoomWithBeds()
 
 }
 
+function setHospitStartDate(id)
+{
+	$(id).datetimepicker({dateFormat:"Y-m-d H:i",format:"Y-m-d H:i"});
+
+}
+
 
 
 function checkVip(id)
@@ -250,10 +256,92 @@ function loadDepStructure()
 	t.sendData();
 }
 
+
+function savePatientHospitStart(id)
+{
+	var btn = id.context.id;
+	
+	var tmp = btn.split("_");
+	
+	var patientName = $("#room_"+tmp[1]+"_"+tmp[2]).val().trim();
+	var parentName = $("#parent_"+tmp[1]+"_"+tmp[2]).val().trim();
+	
+	
+	if (patientName.length == 0){
+		
+		pushWindow({caption:"Error",content:"Nie je meno pacienta"});
+		return false;
+		
+	}
+	
+	var hospit_start = $("#hstart_"+tmp[1]+"_"+tmp[2]).val().trim();
+	
+	if (hospit_start.length == 0){
+		
+		pushWindow({caption:"Error",content:"Nie je začiatok hospitalizácie"});
+		return false;
+		
+	}
+	
+	
+	
+	
+	var data = {
+			room:Number(tmp[1]),
+			bed:Number(tmp[2]),
+			patientName:patientName,
+			parentName:parentName,
+			hospit_start:hospit_start,
+			
+			
+	};
+	
+	
+	var t = new js_comunication();
+	t.addRawRequest("index.php","depman/js_savePatientHospitStart",depMan,[data,"afterSavePatientHospitStart",tmp]);
+	t.sendData();
+	
+}
+
+
+function afterSavePatientHospitStart(status,result,arg)
+{
+	
+	
+	if (!status){
+		
+		
+		pushWindow({caption:"Error",content:result});
+		return false;
+		
+	}
+	
+	var roomBed = arg[1]+"_"+arg[2];
+	
+	$("#room_"+roomBed).attr("readonly","readonly");
+	$("#parent_"+roomBed).attr("readonly","readonly");
+	var hospit_start = $("#hstart_"+roomBed).val();
+	
+	$("#hstart_"+roomBed).css("display","none");
+	$("#hend_"+roomBed).val("");
+	$("#hstart_label_"+roomBed).html(hospit_start);
+	
+	$("#btnhstart_"+roomBed).css('display',"none");
+	
+	$("#hospit_end_"+roomBed).css("display","inline");
+	
+	$("#hospit_end_"+roomBed).val("");
+	
+	
+
+}
+
+
+
+
 function setPatientsStructure(status,result)
 {
 	
-	console.log([status,result]);
 	
 	if (!status){
 		
@@ -280,26 +368,71 @@ function setPatientsStructure(status,result)
 		}
 		
 		$("#"+posId).val(result[i].name);
-		$("#hstart_"+posId).html(result[i].hospit_start);
+		$("#"+posId).attr("readonly","readonly");
 		
-		if (result[i].hospit_end !== null){
-			
-			$("#hend_"+posId).html(result[i].hospit_start);
+		var roomBed = result[i].room+"_"+result[i].bed;
 		
-		}else{
-			
-			var btnId = "hend_btn_"+posId;
-			
-			var button = "<input type='text' id='hend_btn_"+posId+"' onblur='setEndDateHospitalisation("+btnId+");' style='width:150px;' class='inline'>" +
-						 "<button onclick='endPatientHospit("+posId+");' class='red button'>Prepustit</button>";
-			
-			$("#hend_"+posId).html(button);
-			
+		$("#hstart_"+roomBed).css("display","none");
+		$("#hstart_label_"+roomBed).html(result[i].hospit_start)
+		$("#hospit_end_"+roomBed).css("display","inline");
+		$("#btnhstart_"+roomBed).css("display","none");
+		
+		
+		if (result[i].status === "patient"){
+			$("#patientBedId_"+roomBed).val(result[i].id);
+		}
+		
+		if (result[i].status === "parent"){
+			$("#parentBedId_"+roomBed).val(result[i].id);
 		}
 		
 	}
 	
 }
+
+function loadMorningStructure()
+{
+	var t=new js_comunication();
+	t.addRawRequest("index.php","depman/js_setMorningPlan",depMan,[{},"setMorningPlan"]);
+	t.sendData();
+	
+}
+
+function setMorningPlan(status,result)
+{
+	console.log(result);
+	
+	if (!status){
+		
+		pushWindow({caption:"Error",content:result});
+		return false;
+	}
+	
+	
+	var stLn = result.length;
+	
+	for (var i=0; i<stLn; i++){
+		
+		var roomBed = result[i].room+"_"+result[i].bed;
+		
+		console.log(result[i].name);
+		
+		
+		 $("#room_"+roomBed).html(result[i].name);
+		 
+		 $("#hstart_label_"+roomBed).html(result[i].hospit_start);
+		 
+		 $("#patientBedId_"+roomBed).val(result[i].bed_id);
+		
+	}
+	
+	
+	
+	
+}
+
+
+
 
 function setEndDateHospitalisation(id)
 {
@@ -311,6 +444,7 @@ function setEndDateHospitalisation(id)
 				step:60
 				
 			});
+	
 	$(id).datetimepicker("show");
 	
 
@@ -336,35 +470,239 @@ function changeDepBeds(){
 }
 
 
+function savePatientHospitEnd(id)
+{
+	var btn = id.context.id;
+	
+	var tmp = btn.split("_");
+	
+	console.log(tmp);
+	
+	var patientBedId = $("#patientBedId_"+tmp[2]+"_"+tmp[3]).val();
+	var parentBedId = $("#parentBedId_"+tmp[2]+"_"+tmp[3]).val();
+	
+	
+	
+	var hospit_end = $("#hend_"+tmp[2]+"_"+tmp[3]).val().trim();
+	
+	if (hospit_end.length == 0){
+		
+		pushWindow({caption:"Error",content:"Nie je koniec hospitalizácie"});
+		return false;
+		
+	}
+	
+	var data = {
+			room:Number(tmp[2]),
+			bed:Number(tmp[3]),
+			patientBedId:patientBedId,
+			parentBedId:parentBedId,
+			hospit_end:hospit_end,
+			
+			
+	};
+	
+	console.log(data);
+	
+	//return;
+	
+	var t = new js_comunication();
+	t.addRawRequest("index.php","depman/js_savePatientHospitEnd",depMan,[data,"afterSavePatientHospitEnd",tmp]);
+	t.sendData();
+}
+
+function afterSavePatientHospitEnd(status,result,arg)
+{
+	if (!status){
+		pushWindow({caption:"Error",content:result});
+		return false;
+	}
+	
+	var roomBed = arg[2]+"_"+arg[3];
+	
+	$("#hstart_"+roomBed).css("display","inline");
+	$("#hstart_"+roomBed).val("");
+	$("#hstart_label_"+roomBed).html("")
+	$("#hospit_end_"+roomBed).css("display","none");
+	$("#btnhstart_"+roomBed).css("display","inline");
+	
+	$("#room_"+roomBed).val("");
+	$("#room_"+roomBed)[0].readOnly = false;
+	$("#parent_"+roomBed).val("");
+	$("#parent_"+roomBed)[0].readOnly = false;
+	
+	$("#patientBedId_"+roomBed).val("");
+	
+	$("#parentBedId_"+roomBed).val("");
+	
+	
+	console.log(arg);
+	
+}
+
+function showPlanAction(id)
+{
+	var element = id.context.id;
+	
+	var type = $("#"+element).val();
+	
+	var t= new js_comunication();
+	t.addRawRequest("index.php","depman/js_getWorkTypes",depMan,[{type:type},"setWorkType",element]);
+	t.sendData();
+	
+}
+
+function setWorkType(status,result,element)
+{
+	
+	var tmp = element.split("_");
+	
+	var roomBed = tmp[1]+"_"+tmp[2];
+	
+	if (!status){
+		pushWindow({caption:"Error",content:result});
+		return false;
+	}
+	
+	var tpLn = result.length;
+	
+	var html = "<select style='width:150px;' class='inline' id='work_type_sel_"+roomBed+"'>";
+	for (var i=0; i< tpLn; i++){
+		
+		html +="<option value='"+result[i].work_type_idf+"'>"+result[i].work_type_label+"</option>";
+	}
+
+	html +="</select><input id='work_type_note_"+roomBed+"' style='width:100px;' type='text' class='inline'><button id='addActionToPlan_"+roomBed+"' class='green button inline'>+</button>";
+	
+	$("#work_type_"+roomBed).html(html);
+	
+	$("#addActionToPlan_"+roomBed).on("click",function(e){
+		
+		addActionToPlanFnc(roomBed);
+		
+	});
+	
+
+}
+
+function addActionToPlanFnc(roomBed)
+{
+	var workType = $("#work_type_sel_"+roomBed).val();
+	var workNote = $("#work_type_note_"+roomBed).val();
+	
+	//console.log([workType,workNote]);
+	var struct_id = $("#patientBedId_"+roomBed).val();
+	
+	
+	
+	var data = {
+			work_type_idf:workType,
+			work_type_note:workNote,
+			struct_id:struct_id
+	};
+	
+	//console.log(data);
+	
+	
+	
+	var t = new js_comunication();
+	t.addRawRequest("index.php","depman/js_savePatientAction",depMan,[data,"afterSavePatientAction",roomBed]);
+	t.sendData();
+	
+	
+	
+}
+
+function afterSavePatientAction(status,result)
+{
+	console.log([status,result]);
+}
+
+
 
 function depman_init()
 {
 	
 
-	
-	
-	$("#addRoom").on("click",function(e){
-		addRoomWithBeds();
-	});
-	
-	
-	$("#saveSettings").on("click",function(e){
-		saveDepSettings();
-	});
-	
-	
-	$("[id*=deleteRoomBtn_]").on("click",function(e){
-		deleteRoomFnc($(this));
-	});
-	
-	$("#saveDepartamentStatus").on("click",function(e){
+	//$.datetimepicker.setLocale("sk");
+	$(".flatpickr").flatpickr({
 		
-		saveDepStructureFnc();
+						enableTime:true,
+						plugins: [new confirmDatePlugin({})],
+						confirmText:"OK",
+						showAlways:true,
+						dateFormat:"Y-m-d H:i",
+						time_24hr:true,
+						
+						onOpen:function(selectedDates, dateStr, instance){
+							
+							instance.setDate(new Date());
+						}
+						
+						//defaultDate:new Date()
+						
 		
-	});
+					});	
+	
+	if ($("#setBeds").val() == "1"){
+		
+		$("#addRoom").on("click",function(e){
+			addRoomWithBeds();
+		});
+		
+		
+		$("#saveSettings").on("click",function(e){
+			saveDepSettings();
+		});
+		
+		
+		$("[id*=deleteRoomBtn_]").on("click",function(e){
+			deleteRoomFnc($(this));
+		});
+		
+		$("#saveDepartamentStatus").on("click",function(e){
+			
+			saveDepStructureFnc();
+			
+		});
+		
+		
+	}
+	
+	
 	
 	if ($("#setStructure").val() == "1"){
+		
 		loadDepStructure();
+		
+		$("[id^=btnhstart]").on("click",function(){
+			
+			savePatientHospitStart($(this));
+			
+		});
+		
+		
+		$("[id^=btn_hend]").on("click",function(){
+			
+			savePatientHospitEnd($(this));
+			
+		});
+		
+		
+	}
+	
+	if ($("#setMorningStructure").val() == "1"){
+		
+		loadMorningStructure();
+		
+		$("[id^=addActionRoomBed_]").on("change",function(e){
+			
+			showPlanAction($(this));
+			
+		});
+		
+		
+		
 	}
 	
 }

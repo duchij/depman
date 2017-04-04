@@ -14,8 +14,9 @@
 <script src="js/comm_class.js" type="text/javascript"></script>
 <!-- <script src="js/pss.js" type="text/javascript"></script> -->
 <script src="tinymce/tinymce.min.js" type="text/javascript"></script>
-<script src="js/jquery.datetimepicker.full.min.js" type="text/javascript"></script>
-
+<!--  <script src="js/jquery.datetimepicker.full.js" type="text/javascript"></script>-->
+<script src="js/flatr/flatpickr.js" type="text/javascript"></script>
+<script src="js/flatr/plugins/confirmDate/confirmDate.js" type="text/javascript"></script>
 
 <script>
 	tinymce.init({ 

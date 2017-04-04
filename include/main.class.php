@@ -208,6 +208,7 @@ class main {
         }
         
         $this->smarty->display("main.tpl");
+        //echo "Exiting"
     }
 
     function tplOutput($templateFile)

@@ -153,7 +153,7 @@ class db{
     }
 
 
-    function insert_row($table,$data,$lastId = false)
+    function insert_row($table,$data,$lastId = false,$parameter="")
     {
 
        // var_dump($data);
@@ -174,8 +174,13 @@ class db{
         $colsStr = join(",",$cols);
         $valStr = join(",",$values);
 
+        if (strlen($parameter)>0){
+        	$parameter ="OR ".$parameter;
+        }
+        
+        
 
-        $sql = sprintf("INSERT INTO %s (%s) VALUES(%s)",$table,$colsStr,$valStr);
+        $sql = sprintf("INSERT %s INTO %s (%s) VALUES(%s)",$parameter,$table,$colsStr,$valStr);
 		//$sql = $this->db->quote($sql);
         $res = $this->db->exec($sql);
 
@@ -189,7 +194,7 @@ class db{
         else{
             $result["status"] = false;
             $tmp = $this->db->errorInfo();
-            $result["msg"] = $tmp[2];
+            $result["result"] = $tmp[2];
             $result["sql"] = $sql;
         }
         //$this->db = null;
@@ -229,7 +234,7 @@ class db{
             $r=0;
             foreach ($data[$row] as $key=>$value)
             {
-                if ($value != NULL)
+                if ($value !== NULL)
                 {
                     $valTmp = $this->db->quote($value,PDO::PARAM_STR);
                     $tmpArr[$r] = $valTmp;
