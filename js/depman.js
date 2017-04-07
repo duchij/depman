@@ -378,6 +378,7 @@ function setPatientsStructure(status,result)
 		$("#btnhstart_"+roomBed).css("display","none");
 		
 		
+		
 		if (result[i].status === "patient"){
 			$("#patientBedId_"+roomBed).val(result[i].id);
 		}
@@ -398,9 +399,172 @@ function loadMorningStructure()
 	
 }
 
+function test(id)
+{
+	console.log(id);
+}
+
+function setRoomBedPatientPlan(data,roomBed)
+{
+	
+	
+	var items = {
+			cancel:{name:"Storno"},
+			done:{name:"Vybavene"}
+			
+	};
+	
+	var planStatus = {
+			
+			plan:"<i class='icon-wrench icon-2x blue'></i>",
+			done:"<i class='icon-ok-sign icon-2x green'></i>",
+			canceled:"<i class='icon-remove icon-2x red'></i>"
+			
+	};
+	
+	// showContextMenu(items,"showMenu","setPlanStatus");
+	
+	for (var type in data){
+		
+		
+		var typLn = data[type].length;
+		
+		for (var t=0; t < typLn; t++){
+			
+			
+			
+			
+			var pl = data[type][t];
+			
+			var planId = pl.work_plan_id;
+			
+			
+			
+			var head = pl.work_type_idf.substring(0,2).toUpperCase();
+			var note = pl.work_type_note;
+			if (note == undefined){
+				note="";
+			}
+			
+			var toolTip =  pl.work_type_idf + "-"+note;
+			
+			
+			switch (type){
+			
+			case "cons":
+				var html = "<div class='blue button' title='"+toolTip+"' id='showMenu_"+planId+"'>"+head+"<br><span class='small'>"+note+"</span>" +
+							"<div id='status_"+planId+"'>"+planStatus[pl.work_plan_status]+"<div></div>";
+				$("#activePlannedActions_"+roomBed).append(html);
+				
+				if (pl.work_plan_status === "plan") showContextMenu(items,"showMenu","setPlanStatus");
+				
+				break;
+			case "pacs":
+				var html = "<div class='green button' title='"+toolTip+"' id='showMenu_"+planId+"'>"+head+"<br><span class='small'>"+note+"</span>" +
+							"<div id='status_"+planId+"'>"+planStatus[pl.work_plan_status]+"<div></div>";
+				$("#activePlannedActions_"+roomBed).append(html);
+				
+				if (pl.work_plan_status === "plan") showContextMenu(items,"showMenu","setPlanStatus");
+				
+				break;
+			case "labs":
+				var html = "<div class='asphalt button' title='"+toolTip+"' id='showMenu_"+planId+"'>"+head+"<br><span class='small'>"+note+"</span>" +
+							"<div id='status_"+planId+"'>"+planStatus[pl.work_plan_status]+"<div></div>";
+				$("#activePlannedActions_"+roomBed).append(html);
+				
+				if (pl.work_plan_status === "plan") showContextMenu(items,"showMenu","setPlanStatus");
+				
+				break;
+			case "plan":
+				var html = "<div class='orange button' title='"+toolTip+"' id='showMenu_"+planId+"'>"+head+"<br><span class='small'>"+note+"</span>" +
+							"<div id='status_"+planId+"'>"+planStatus[pl.work_plan_status]+"<div></div>";
+				$("#activePlannedActions_"+roomBed).append(html);
+				
+				if (pl.work_plan_status === "plan") showContextMenu(items,"showMenu","setPlanStatus");
+				
+				break;
+			}
+		}
+	}
+
+}
+
+function showContextMenu(items,selector, callback)
+{
+	
+	$(function(){
+		
+		$.contextMenu({
+			
+			selector:"[id^="+selector+"]",
+			trigger:"left",
+			callback:function(key,options){
+				
+				depMan[callback](key,options);
+				
+			},
+			items: items
+			
+			
+		});
+	});
+}
+
+
+function setPlanStatus(action,obj)
+{
+	var selector = obj.$trigger.context.id;
+	var tmp  = selector.split("_");
+	
+	var settings = {planId:tmp[1]};
+	
+	switch(action){
+	
+		case "cancel":
+			settings.action = "cancel";
+			break;
+		case "done":
+			settings.action = "done";
+			break;
+	
+	}
+	
+	var t = new js_comunication();
+	
+	t.addRawRequest("index.php","depman/js_updatePlanStatus",depMan,[settings,"afterUpdatePlanStatus",{action:action, planId:tmp[1]}]);
+	t.sendData();
+	
+}
+
+function afterUpdatePlanStatus(status,result,settings)
+{
+	
+	if (!status){
+		
+		pushWindow({caption:"Error",content:result});
+		return false;
+	}
+	
+		
+	switch (settings.action){
+	
+	case "done":
+		$("#status_"+settings.planId).html("<i class='icon-ok-sign icon-2x green'></i>");
+		break;
+	case "cancel":
+		$("#status_"+settings.planId).html("<i class='icon-remove icon-2x red'></i>");
+		break;
+		
+	}
+
+}
+
+
 function setMorningPlan(status,result)
 {
 	console.log(result);
+	
+	//return true;
 	
 	if (!status){
 		
@@ -409,25 +573,35 @@ function setMorningPlan(status,result)
 	}
 	
 	
-	var stLn = result.length;
 	
-	for (var i=0; i<stLn; i++){
+	
+	for (var room in result){
 		
-		var roomBed = result[i].room+"_"+result[i].bed;
-		
-		console.log(result[i].name);
+		var stLn = result[room].length;
 		
 		
-		 $("#room_"+roomBed).html(result[i].name);
-		 
-		 $("#hstart_label_"+roomBed).html(result[i].hospit_start);
-		 
-		 $("#patientBedId_"+roomBed).val(result[i].bed_id);
+		var ro =result[room];
+		
+		for (var i=0; i<stLn; i++){
+			
+			var roomBed = ro[i].room+"_"+ro[i].bed;
+			
+			
+			
+			 $("#room_"+roomBed).html(ro[i].name);
+			 
+			 $("#hstart_label_"+roomBed).html(ro[i].hospit_start);
+			 
+			 $("#patientBedId_"+roomBed).val(ro[i].bed_id);
+			 
+			 $("#addActionRoomBed_"+roomBed).css("display","inline");
+			 
+			 
+			 setRoomBedPatientPlan(ro[i].plan,roomBed);
+			
+		}
 		
 	}
-	
-	
-	
 	
 }
 
@@ -536,7 +710,7 @@ function afterSavePatientHospitEnd(status,result,arg)
 	$("#parentBedId_"+roomBed).val("");
 	
 	
-	console.log(arg);
+	//console.log(arg);
 	
 }
 
@@ -544,11 +718,22 @@ function showPlanAction(id)
 {
 	var element = id.context.id;
 	
+	var tmp  = element.split("_");
+	
+	
 	var type = $("#"+element).val();
 	
-	var t= new js_comunication();
-	t.addRawRequest("index.php","depman/js_getWorkTypes",depMan,[{type:type},"setWorkType",element]);
-	t.sendData();
+	if (type !== "none"){
+		var t= new js_comunication();
+		t.addRawRequest("index.php","depman/js_getWorkTypes",depMan,[{type:type},"setWorkType",element]);
+		t.sendData();
+	}else{
+		
+		$("#work_type_"+tmp[1]+"_"+tmp[2]).html("");
+		
+	}
+	
+	
 	
 }
 
@@ -556,6 +741,8 @@ function setWorkType(status,result,element)
 {
 	
 	var tmp = element.split("_");
+	
+	
 	
 	var roomBed = tmp[1]+"_"+tmp[2];
 	
@@ -578,14 +765,14 @@ function setWorkType(status,result,element)
 	
 	$("#addActionToPlan_"+roomBed).on("click",function(e){
 		
-		addActionToPlanFnc(roomBed);
+		addActionToPlanFnc(roomBed,element);
 		
 	});
 	
 
 }
 
-function addActionToPlanFnc(roomBed)
+function addActionToPlanFnc(roomBed,element)
 {
 	var workType = $("#work_type_sel_"+roomBed).val();
 	var workNote = $("#work_type_note_"+roomBed).val();
@@ -606,17 +793,79 @@ function addActionToPlanFnc(roomBed)
 	
 	
 	var t = new js_comunication();
-	t.addRawRequest("index.php","depman/js_savePatientAction",depMan,[data,"afterSavePatientAction",roomBed]);
+	t.addRawRequest("index.php","depman/js_savePatientAction",depMan,[data,"afterSavePatientAction",[roomBed,element]]);
 	t.sendData();
 	
 	
 	
 }
 
-function afterSavePatientAction(status,result)
+function afterSavePatientAction(status,result,arr)
 {
-	console.log([status,result]);
+	//console.log([status,result]);
+	
+	if (status == false){
+		
+		pushWindow({caption:"Error",content:result});
+		return false;
+		
+	}
+	
+	var roomBed = arr[0];
+	var element = arr[1];
+	
+	var data = result.result.data;
+	
+	var type = $("#"+element).val();
+	
+	
+	$("#work_type_"+roomBed).html("");
+	
+	
+	
+	//console.log(data);
+	
+	var head = data.work_type_idf.substring(0,2).toUpperCase();
+	var note = data.work_type_note;
+	
+	var planId = result.lastId;
+	
+	
+	if (note == undefined){
+		note="-";
+	}
+	
+	var toolTip =  data.work_type_idf + "-"+note;
+	
+	
+	switch (type) {
+	
+	case "cons":
+		var html = "<div class='blue button' title='"+toolTip+"'>"+head+"<br><span class='small'>"+note+"</span>" +
+				"<div id='status_"+planId+"'><i class='icon-wrench icon-2x'></i></div>";
+		$("#activePlannedActions_"+roomBed).append(html);
+		break;
+	case "pacs":
+		var html = "<div class='green button' title='"+toolTip+"'>"+head+"<br><span class='small'>"+note+"</span>" +
+					"<div id='status_"+planId+"'><i class='icon-wrench icon-2x'></i></div>";
+		$("#activePlannedActions_"+roomBed).append(html);
+		break;
+	case "labs":
+		var html = "<div class='asphalt button' title='"+toolTip+"'>"+head+"<br><span class='small'>"+note+"</span>" +
+					"<div id='status_"+planId+"'><i class='icon-wrench icon-2x'></i></div>";
+		$("#activePlannedActions_"+roomBed).append(html);
+		break;
+	case "plan":
+		var html = "<div class='orange button' title='"+toolTip+"'>"+head+"<br><span class='small'>"+note+"</span>" +
+					"<div id='status_"+planId+"'><i class='icon-wrench icon-2x'></i></div>";
+		$("#activePlannedActions_"+roomBed).append(html);
+		break;
+	}
+	
+	
 }
+
+
 
 
 
@@ -643,6 +892,9 @@ function depman_init()
 						
 		
 					});	
+	
+	
+	
 	
 	if ($("#setBeds").val() == "1"){
 		

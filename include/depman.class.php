@@ -85,7 +85,7 @@ class depman extends main{
 		
 		$sql = "SELECT * FROM [structure]
 				WHERE [hospit_end] IS NULL
-				AND [hospit_start] BETWEEN {dateStr|s} AND {dateEnd|s}
+				-- AND [hospit_start] BETWEEN {dateStr|s} AND {dateEnd|s}
 				AND [dep_id] = {dep_id|i}
 				";
 		
@@ -294,12 +294,29 @@ class depman extends main{
 		$dtEnd = $now->format("Y-m-d 23:59:59");
 		
 		
-		$sql = "SELECT [name],[bed],[room],[hospit_start],[dep_id],[id] AS [bed_id] FROM [structure]
-				WHERE [hospit_end] IS NULL
-				AND [hospit_start] BETWEEN {dateStr|s} AND {dateEnd|s}
-				AND [dep_id] = {dep_id|i}
-				AND [status] = 'patient'
+		$sql = "SELECT 
+					[t_struct.name] AS [name], [t_struct.bed] AS [bed], [t_struct.room] AS [room], [t_struct.hospit_start] AS [hospit_start],
+					[t_struct.dep_id] AS [dep_id], [t_struct.id] AS [bed_id],
+				
+					GROUP_CONCAT([t_plan.work_type_idf], '|') AS [work_type_idf], GROUP_CONCAT([t_plan.work_type_note],'|') AS [work_type_note],
+					GROUP_CONCAT([t_plan.id], '|') AS [work_plan_id], GROUP_CONCAT([t_plan.status],'|') AS [plan_status],
+				
+					[t_types.work_type] AS [work_type]
+				
+				FROM [structure] AS [t_struct]
+				
+				INNER JOIN [work_plan] AS [t_plan] ON [t_struct.id] = [t_plan.struct_id]
+				INNER JOIN [work_types] AS [t_types] ON [t_plan.work_type_idf] = [t_types.work_type_idf]
+				
+					WHERE [t_struct.hospit_end] IS NULL
+					-- AND [t_struct.hospit_start] BETWEEN {dateStr|s} AND {dateEnd|s}
+					AND [t_struct.dep_id] = {dep_id|i}
+					AND [t_struct.status] = 'patient'
+					-- AND [t_plan.plan_date] = (SELECT DATE('now'))
+				GROUP BY [t_types.work_type_idf]
+				ORDER BY [t_types.work_type]
 				";
+		
 		
 		$structArr = array(
 				"dep_id"=>$_SESSION["dep_id"],
@@ -308,6 +325,8 @@ class depman extends main{
 		);
 		
 		$sql = $this->db->buildSql($sql,$structArr);
+		$this->log->logData($sql);
+		
 		
 		//$this->log->logData($sql,false);
 		
@@ -319,7 +338,60 @@ class depman extends main{
 		
 		}
 		
-		return $this->resultStatus(true, $structTab["table"]);
+		$table = $structTab["table"];
+		
+		$result = array();
+		
+		foreach ($table as $row){
+			
+			if (!isset($result[$row["room"]])){
+				
+				$result[$row["room"]] = array();
+			
+			}
+			
+			if (!isset($result[$row["room"]][$row["bed"]])){
+				
+				$result[$row["room"]][$row["bed"]] = array(
+						
+					"name"	=>$row["name"],
+					"bed"	=>$row["bed"],
+					"room"	=>$row["room"],
+					"bed_id"=>$row["bed_id"],
+					"hospit_start"=>$row["hospit_start"],
+					"plan"	=>array(),
+						
+				);
+			}
+			
+			
+			$work_type_idfs = explode("|",$row["work_type_idf"]);
+			$work_type_notes = explode("|",$row["work_type_note"]);
+			$work_plan_ids = explode("|",$row["work_plan_id"]);
+			$work_plan_sts = explode("|",$row["plan_status"]);
+			
+			$wtLn = count($work_type_idfs);
+			
+			if (!isset($result[$row["room"]][$row["bed"]]["plan"][$row["work_type"]])){
+				
+				$result[$row["room"]][$row["bed"]]["plan"][$row["work_type"]] = array();
+				
+			}
+			
+			for ($r=0; $r<$wtLn; $r++){
+			
+				$result[$row["room"]][$row["bed"]]["plan"][$row["work_type"]][] = array(
+							
+																						"work_type_idf" => $work_type_idfs[$r],
+																						"work_type_note" => $work_type_notes[$r],
+																						"work_plan_id" => $work_plan_ids[$r],
+																						"work_plan_status" => $work_plan_sts[$r]
+						);
+			
+			}
+		}
+		
+		return $this->resultStatus(true, $result);
 	}
 	
 	public function js_getWorkTypes($data)
@@ -347,9 +419,42 @@ class depman extends main{
 	
 	public function js_savePatientAction($data)
 	{
+		
+		if (empty($data["work_type_note"])){
+			
+			unset($data["work_type_note"]);
+		}
 		$res = $this->db->insert_row("work_plan", $data,true);
 		
+		$res["result"]["data"]=$data;
+		
+		
 		return $this->resultStatus($res["status"], $res);
+	}
+	
+	
+	public function js_updatePlanStatus($data)
+	{
+		
+		$sql = "";
+		
+		switch ($data["action"]){
+			
+			case "cancel":
+				$sql = "UPDATE [work_plan] SET [status]='canceled' WHERE [id]={planId|i}";
+				break;
+			case "done":
+				$sql = "UPDATE [work_plan] SET [status]='done' WHERE [id]={planId|i}";
+				break;
+			
+		}
+		
+		
+		$sql = $this->db->buildSql($sql,$data);
+		$res = $this->db->execute($sql);
+		
+		return $this->resultStatus($res["status"], $res["result"]);
+		
 	}
 	
 	

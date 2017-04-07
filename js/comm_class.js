@@ -611,6 +611,8 @@ function __completedRequest(respond)
         	
         	alert(fError);
         	
+        	pushWindow({caption:'System error',content:respond});
+        	
         	throw new Error (fError);
     	}
     	

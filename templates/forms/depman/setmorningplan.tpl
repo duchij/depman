@@ -19,8 +19,10 @@
 					<h3 class="black">Posteľ {$smarty.section.inb.index+1}</h3>
 					<p>Pacient:
 					<input type="hidden" id="patientBedId_{$bed.room}_{$smarty.section.inb.index}" value="">
-					<span class="inline asphalt" style="width:250px;" name="room_{$bed.room}_{$smarty.section.inb.index}" id="room_{$bed.room}_{$smarty.section.inb.index}"></span>
-				{*	Rodič: 
+					<span class="inline asphalt large" style="width:250px;" name="room_{$bed.room}_{$smarty.section.inb.index}" id="room_{$bed.room}_{$smarty.section.inb.index}"></span>
+					
+					{*<button class="red button inline">Prepustenie/Preklad</button>*}
+					{*	Rodič: 
 					<input type="hidden" id="parentBedId_{$bed.room}_{$smarty.section.inb.index}" value="">
 					<span class="inline" style="width:250px;" name="parent_{$bed.room}_{$smarty.section.inb.index}" id="parent_{$bed.room}_{$smarty.section.inb.index}"></span>
 					*}
@@ -34,13 +36,14 @@
 						Koniec hospitalizácie: <input type="text" class="flatpickr inline" style="width:150px;" id="hend_{$bed.room}_{$smarty.section.inb.index}">
 						<button id="btn_hend_{$bed.room}_{$smarty.section.inb.index}" class="red button">Demitus</button>
 						</div>*}
-						Plán: <div id="active_planned_actions"></div>
-						Pridat akciu:<select id="addActionRoomBed_{$bed.room}_{$smarty.section.inb.index}" style="width:200px;" class="inline">
+						Plán: <div id="activePlannedActions_{$bed.room}_{$smarty.section.inb.index}"></div>
+						<hr class="asphalt">
+						Pridat akciu:<select id="addActionRoomBed_{$bed.room}_{$smarty.section.inb.index}" style="width:200px; display:none;" class="inline">
 										<option value="none">-</option>
-										<option value="cons">Konzilia</option>
-										<option value="pacs">Zobrazovacie vysetrenia</option>
-										<option value="labs">Laboratorne vysetrenia</option>
-										<option value="plan">Plan/Postup</option>
+										<option value="cons" class="blue">Konzilia</option>
+										<option value="pacs" class="green">Zobrazovacie vysetrenia</option>
+										<option value="labs" class="asphalt">Laboratorne vysetrenia</option>
+										<option value="plan" class="orange">Plan/Postup</option>
 									</select>
 						<div id="work_type_{$bed.room}_{$smarty.section.inb.index}" class="inline">
 						</div>	

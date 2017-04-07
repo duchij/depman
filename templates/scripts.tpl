@@ -17,6 +17,8 @@
 <!--  <script src="js/jquery.datetimepicker.full.js" type="text/javascript"></script>-->
 <script src="js/flatr/flatpickr.js" type="text/javascript"></script>
 <script src="js/flatr/plugins/confirmDate/confirmDate.js" type="text/javascript"></script>
+<script src="js/contextm/jquery.ui.position.js" type="text/javascript"></script>
+<script src="js/contextm/jquery.contextMenu.js" type="text/javascript"></script>
 
 <script>
 	tinymce.init({ 
